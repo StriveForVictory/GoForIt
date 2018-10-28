@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC '-//ibatis.apache.org//DTD Sql Map 2.0//EN' 
+'http://ibatis.apache.org/dtd/sql-map-2.dtd'>
+
+<sqlMap>
+	<typeAlias alias="board" type="board.boardVO"/>
+	<typeAlias alias="comment" type="board.cboardVO"/>
+	
+		<resultMap id="boardRes" class="board">
+			<result property="no" column="no"/>
+			<result property="subject" column="subject"/>
+			<result property="name" column="name"/>
+			<result property="password" column="password"/>
+			<result property="content" column="content"/>
+			<result property="file_orgname" column="file_orgname"/>
+			<result property="file_savname" column="file_savname"/>
+			<result property="readhit" column="readhit"/>
+			<result property="regdate" column="regdate"/>
+			<result property="ref" column="ref"/>
+			<result property="re_step" column="re_step"/>
+			<result property="re_level" column="re_level"/>
+		</resultMap>
+		<resultMap id="commentRes" class="comment">
+			<result property="no" column="no"/>
+			<result property="originno" column="originno"/>
+			<result property="name" column="name"/>
+			<result property="password" column="password"/>
+			<result property="content" column="content"/>
+			<result property="regdate" column="regdate"/>
+		</resultMap>
+		
+		<sql id="select-all">SELECT * FROM SSSBOARD2</sql>
+		<sql id="select-com">SELECT * FROM BBBOARDC</sql>
+		<sql id="where-no">WHERE no = #no#</sql>
+		
+		<!-- public boardVO selectAll(int n) -->
+		<select id="selectAll" resultMap="boardRes" parameterClass="int">
+			<include refid="select-all"/>
+			ORDER BY ref DESC,re_step ASC
+		</select>
+		
+		<select id="commentSelectAll" resultMap="commentRes" parameterClass="int">
+			SELECT * FROM BBBOARDC WHERE originno=#no# ORDER BY no DESC
+		</select>
+		
+		<select id="selectOne" resultMap="boardRes" parameterClass="int">
+			<include refid="select-all"/>
+			<include refid="where-no"/>
+		</select>
+		
+		<select id="selectSearchW" resultMap="boardRes" parameterClass="string">
+			<include refid="select-all"/>
+			WHERE name like #searchKeyword# ORDER BY no DESC
+		</select>
+		<select id="selectSearchS" resultMap="boardRes" parameterClass="string">
+			<include refid="select-all"/>
+			WHERE subject like #searchKeyword# ORDER BY no DESC
+		</select>
+		<select id="selectSearchC" resultMap="boardRes" parameterClass="string">
+			<include refid="select-all"/>
+			WHERE content like #searchKeyword# ORDER BY no DESC
+		</select>
+		
+		<select id="selectLastNo" resultClass="board" parameterClass="int">
+			SELECT max(no) as no FROM SSSBOARD2
+		</select>
+		
+		<select id="selectPassword" resultMap="boardRes">
+			<include refid="select-all"/>
+			<include refid="where-no"/>
+			AND password = #password#
+		</select>
+		<select id="selectPassword2" resultMap="commentRes">
+			<include refid="select-all"/>
+			<include refid="where-no"/>
+			AND password = #password#
+		</select>
+		
+		
+		<insert id="insertBoard" parameterClass="board">
+		INSERT INTO SSSBOARD2(NO,SUBJECT,NAME,PASSWORD,CONTENT,REGDATE,RE_STEP,RE_LEVEL,REF)
+			VALUES(SSSBOARD_NO_SEQ.NEXTVAL,#subject#,#name#,#password#,#content#,#regdate#,#re_step#,#re_level#,SSSBOARD_NO_SEQ.CURRVAL)
+		</insert>
+		
+		<insert id="insertBoardReply" parameterClass="board">
+		INSERT INTO SSSBOARD2(NO, SUBJECT, NAME, PASSWORD, CONTENT, REGDATE,RE_STEP,RE_LEVEL,REF)
+		VALUES (SSSBOARD2_NO_SEQ.NEXTVAL, #subject#, #name#, #password#, #content#, #regdate#, #re_step#, #re_level#, #ref#)
+		</insert>
+	
+		<insert id="insertComment" parameterClass="comment">
+		INSERT INTO BBBOARDC(NO, ORIGINNO, NAME, PASSWORD, CONTENT, REGDATE)
+		VALUES (BBBOARDC_NO_SEQ.NEXTVAL, #originno#, #name#, #password#, #content#, #regdate#)
+		</insert>
+		
+		<update id="updateBoard" parameterClass="board">
+		UPDATE SSSBOARD2 SET SUBJECT=#subject#,NAME=#name#,PASSWORD=#password#,CONTENT=#content#
+		<include refid="where-no"/>
+		</update>
+		
+		<update id="updateFile" parameterClass="board">
+		UPDATE SSSBOARD2 SET FILE_ORGNAME=#file_orgname#,FILE_SAVNAME=#file_savname#
+		<include refid="where-no"/>
+		</update>
+		
+		<update id="updateReadHit" parameterClass="board">
+		UPDATE SSSBOARD2 SET READHIT = readHit + 1
+		<include refid="where-no"/>
+		</update>
+		
+		<update id="updateReplyStep" parameterClass="board">
+		UPDATE SSSBOARD2 SET re_step=re_step+1 WHERE ref=#ref# AND re_step>#re_step#
+		</update>
+		
+		<delete id="deleteBoard" parameterClass="board">
+		DELETE FROM SSSBOARD2
+		<include refid="where-no"/>
+		</delete>
+		<delete id="deleteComment" parameterClass="comment">
+		DELETE FROM BBBOARDC
+		<include refid="where-no" />
+		</delete>
+</sqlMap>
